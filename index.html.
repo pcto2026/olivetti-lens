@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Olivetti Lens - Scanner Finale</title>
+    <style>
+        :root {
+            --olivetti-blue: #0052A3;
+            --olivetti-red: #E30613;
+        }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: black; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        
+        /* FOTOCAMERA CON FILTRO FREDDO */
+        #video-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: -1;
+            /* Questo filtro rende tutto più blu/freddo e un po' grigio */
+            filter: saturate(0.6) hue-rotate(160deg) brightness(1.1);
+        }
+
+        /* Mirino Centrale */
+        .reticle {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 250px; height: 250px; border: 1px solid rgba(255,255,255,0.3); border-radius: 30px;
+        }
+
+        /* Pannello UI */
+        .panel {
+            position: absolute; bottom: 30px; left: 20px; right: 20px;
+            background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 25px; padding: 25px; color: white; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .metric { margin-bottom: 12px; }
+        .label { font-size: 10px; font-weight: bold; color: #888; letter-spacing: 1.5px; text-transform: uppercase; }
+        .bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 5px; overflow: hidden; }
+        .bar-fill { height: 100%; width: 0%; transition: width 3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        #status { font-size: 14px; font-weight: bold; margin-bottom: 20px; color: #00ffcc; text-transform: uppercase; }
+        
+        button {
+            width: 100%; padding: 18px; border-radius: 15px; border: none;
+            background: var(--olivetti-blue); color: white; font-weight: bold; font-size: 14px;
+            margin-top: 10px; cursor: pointer;
+        }
+
+        #result-text { font-size: 13px; color: #ffb3b3; margin-top: 15px; display: none; line-height: 1.5; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <video id="video-bg" autoplay playsinline></video>
+    
+    <div class="reticle"></div>
+
+    <div class="panel">
+        <div id="status">Scansione Ambiente v3.0</div>
+        
+        <div class="metric">
+            <span class="label">Etica & Comunità</span>
+            <div class="bar-bg"><div id="bar-etica" class="bar-fill" style="background: var(--olivetti-red);"></div></div>
+        </div>
+
+        <div class="metric">
+            <span class="label">Spazio & Design</span>
+            <div class="bar-bg"><div id="bar-spazio" class="bar-fill" style="background: white;"></div></div>
+        </div>
+
+        <div class="metric">
+            <span class="label">Qualità Luce Naturale</span>
+            <div class="bar-bg"><div id="bar-luce" class="bar-fill" style="background: #00ffcc;"></div></div>
+        </div>
+
+        <button id="scan-btn" onclick="startScan()">INIZIA ANALISI</button>
+        
+        <div id="result-text">
+            ATTENZIONE: Rilevata luce artificiale dominante. Ambiente non conforme ai criteri di benessere Olivetti. Necessaria riconfigurazione delle finestre.
+        </div>
+    </div>
+
+    <script>
+        // Funzione per attivare la fotocamera
+        async function initCamera() {
+            const video = document.getElementById('video-bg');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" }, 
+                    audio: false 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Errore fotocamera: ", err);
+                alert("Per favore, abilita la fotocamera nelle impostazioni del browser!");
+            }
+        }
+
+        // Funzione per l'animazione della scansione
+        function startScan() {
+            const btn = document.getElementById('scan-btn');
+            btn.innerText = "ANALISI IN CORSO...";
+            btn.style.opacity = "0.5";
+            btn.disabled = true;
+
+            // Anima le barre con valori bassi (critica sociale)
+            setTimeout(() => {
+                document.getElementById('bar-etica').style.width = "28%";
+                document.getElementById('bar-spazio').style.width = "40%";
+                document.getElementById('bar-luce').style.width = "15%"; // Luce bassissima
+                
+                setTimeout(() => {
+                    document.getElementById('status').innerText = "RISULTATO: NON CONFORME";
+                    document.getElementById('status').style.color = "#E30613";
+                    document.getElementById('result-text').style.display = "block";
+                }, 3000);
+            }, 500);
+        }
+
+        // Avvia la fotocamera appena la pagina è pronta
+        window.addEventListener('load', initCamera);
+    </script>
+</body>
+</html>
